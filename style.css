@@ -461,7 +461,7 @@ button:hover {
 .gallery-item {
   flex: 1 1 100%;  /* full width by default */
   min-width: 280px;
-  max-width: 550px;
+  max-width: 50px;
     /* Slightly translucent neutral background so the canvas/hero can subtly show through */
     background: rgba(220, 228, 239, .65); /* neutral card background */
   /* enable smooth card-scale animation for the whole item */

@@ -61,8 +61,8 @@ getImageBtn.addEventListener('click', async () => {
 	gallery.appendChild(loadingDiv);
 
 	// Small UX delay so the loading message is visible even on fast networks
-	// (750ms = 0.75s)
-	await new Promise((res) => setTimeout(res, 750));
+	// (350ms = 0.35s)
+	await new Promise((res) => setTimeout(res, 200));
 
 	try {
 		const resp = await fetch(apodData);
