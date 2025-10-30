@@ -6,16 +6,26 @@
 }
 
 /* Base page styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* prevent page from scrolling */
+}
+
 body {
   font-family: Arial, sans-serif;
-  background-color: #f1f1f1;
-  padding: 20px;
+  background-color: #212121;
 }
 
 /* Centered container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px; /* moved page padding here so content keeps breathing */
+  /* ensure gallery is above canvas background layers */
+  position: relative;
+  z-index: 5;
 }
 
 /* Header */
@@ -23,15 +33,146 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  margin-bottom: 20px;
+  padding-top: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 h1 {
-  font-family: Verdana, sans-serif;
-  font-weight: bold;
-  color: #212121;
+  /* Use Orbitron for a space-y headline; fall back to Verdana/sans-serif */
+  font-family: 'Orbitron', Verdana, sans-serif;
+  font-weight: 700;
+  color: #dce4ef;
+}
+
+/* Hero / first-screen styles */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  padding: 40px 20px;
+  background: linear-gradient(to bottom, #0b0b2b, #1b2735 70%, #090a0f);
+}
+
+/* Canvas background layers */
+#backgroundCanvas,
+#starsCanvas,
+#milkyWayCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* let clicks pass through */
+  overflow: hidden;
+}
+
+#backgroundCanvas { z-index: 1; background: radial-gradient(#100826,#060212); }
+#milkyWayCanvas { z-index: 2; filter: blur(0px); }
+#starsCanvas { z-index: 3; }
+
+/* Ensure hero content sits above canvases */
+.hero-content { z-index: 4; }
+
+/* Compact state when the Fetch button is clicked: show a slim top-nav and reveal the gallery below
+   - Collapse the hero to a small navigation bar
+   - Place logo/title on the left and the action button on the right
+   - Ensure the gallery container sits immediately below the nav (no disappearing content)
+*/
+body.compact .hero {
+  min-height: 64px; /* slim nav height */
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Transform hero content into a top-nav bar */
+body.compact .hero .hero-content {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+/* Keep site-header and filters inline in the nav */
+body.compact .hero .site-header {
+  position: static;
+  top: auto;
+  left: auto;
+  margin: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+}
+
+/* add spacing between the left edge of the viewport and the logo when compact */
+body.compact .site-header {
+  padding-left: 16px;
+  padding-top: 10px;
+}
+
+/* Align filters (the button) to the right in the nav */
+body.compact .hero .filters {
+  position: static;
+  margin: 0;
+}
+
+/* Slightly reduce logo and title size in compact/nav state */
+body.compact .hero .logo { width: 90px; margin-right: 8px; }
+/* Make the logo/title larger in the compact nav so they stand out */
+body.compact .hero .logo { width: 130px; margin-right: 2px; }
+body.compact .hero h1 { font-size: 38px; }
+
+/* Hide the fetch button visually when compact (the JS will also hide it once clicked) */
+body.compact .filters button { display: none; }
+
+/* Ensure gallery sits below the slim nav and no transforms hide it */
+body.compact .container {
+  margin-top: 8px;
+  transform: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px; /* more room between header and button */
+}
+
+.hero .logo {
+  width: 180px; /* larger logo on the hero */
+  margin-right: 12px;
+}
+
+.hero .site-header {
+  /* place logo and title side-by-side on the hero */
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: 44px;
+  letter-spacing: 1px;
+  margin: 0; /* reset margin so it sits nicely next to the logo */
+}
+
+@media (min-width: 900px) {
+  .hero h1 { font-size: 50px; }
+}
+
+.hero .filters button {
+  padding: 14px 22px;
+  /* font-size removed to allow .star-button to control sizing */
 }
 
 /* Logo */
@@ -44,10 +185,177 @@ h1 {
 .filters {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   padding: 0 20px;
+}
+
+/* Keep only a single button; use Exo 2 for the primary action button */
+.filters button { font-family: 'Exo 2', Arial, sans-serif; }
+
+/* Star-decorated primary button (scoped so other buttons aren't affected) */
+.star-button{
+  position: relative;
+  /* restore original (smaller) button sizing while keeping text slightly larger */
+  padding: 14px 22px;
+  background: #dce4ef; /* default background when not hovered */
+  font-size: 26px; /* modestly larger text, button overall size kept small */
+  font-weight: 700;
+  color: #000000;
+  border: 3px solid #dce4ef; /* border matches background */
+  border-radius: 12px;
+  box-shadow: 0 0 0 #fec1958c;
+  transition: all .22s ease-in-out;
+}
+
+/* Ensure the hero filters area doesn't override the star-button size */
+.hero .filters .star-button {
+  font-size: 30px;
+}
+
+.star-button .star-1 {
+  position: absolute;
+  top: 20%;
+  left: 20%;
+  width: 25px;
+  height: auto;
+  filter: drop-shadow(0 0 0 #fffdef);
+  z-index: -5;
+  transition: all 1s cubic-bezier(0.05, 0.83, 0.43, 0.96);
+}
+
+.star-button .star-2 {
+  position: absolute;
+  top: 45%;
+  left: 45%;
+  width: 15px;
+  height: auto;
+  filter: drop-shadow(0 0 0 #fffdef);
+  z-index: -5;
+  transition: all 1s cubic-bezier(0, 0.4, 0, 1.01);
+}
+
+.star-button .star-3 {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  width: 5px;
+  height: auto;
+  filter: drop-shadow(0 0 0 #fffdef);
+  z-index: -5;
+  transition: all 1s cubic-bezier(0, 0.4, 0, 1.01);
+}
+
+.star-button .star-4 {
+  position: absolute;
+  top: 20%;
+  left: 40%;
+  width: 8px;
+  height: auto;
+  filter: drop-shadow(0 0 0 #fffdef);
+  z-index: -5;
+  transition: all .8s cubic-bezier(0, 0.4, 0, 1.01);
+}
+
+.star-button .star-5 {
+  position: absolute;
+  top: 25%;
+  left: 45%;
+  width: 15px;
+  height: auto;
+  filter: drop-shadow(0 0 0 #fffdef);
+  z-index: -5;
+  transition: all .6s cubic-bezier(0, 0.4, 0, 1.01);
+}
+
+.star-button .star-6 {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  width: 5px;
+  height: auto;
+  filter: drop-shadow(0 0 0 #fffdef);
+  z-index: -5;
+  transition: all .8s ease;
+}
+
+.star-button:hover{
+  /* Slightly transparent purple based on #4c2c92 */
+  background: rgba(76,44,146,0.85);
+  color: #dce4ef; /* match requested hover font color */
+  /* match glow to the purple hue */
+  box-shadow: 0 0 30px rgba(76,44,146,0.55);
+  border: 3px solid #dce4ef; /* keep border visible and consistent */
+}
+
+.star-button:hover .star-1 {
+  position: absolute;
+  top: -80%;
+  left: -30%;
+  width: 25px;
+  height: auto;
+  filter: drop-shadow(0 0 10px #fffdef);
+  z-index: 2;
+}
+
+.star-button:hover .star-2 {
+  position: absolute;
+  top: -25%;
+  left: 10%;
+  width: 15px;
+  height: auto;
+  filter: drop-shadow(0 0 10px #fffdef);
+  z-index: 2;
+}
+
+.star-button:hover .star-3 {
+  position: absolute;
+  top: 55%;
+  left: 25%;
+  width: 5px;
+  height: auto;
+  filter: drop-shadow(0 0 10px #fffdef);
+  z-index: 2;
+}
+
+.star-button:hover .star-4 {
+  position: absolute;
+  top: 30%;
+  left: 80%;
+  width: 8px;
+  height: auto;
+  filter: drop-shadow(0 0 10px #fffdef);
+  z-index: 2;
+}
+
+.star-button:hover .star-5 {
+  position: absolute;
+  top: 25%;
+  left: 115%;
+  width: 15px;
+  height: auto;
+  filter: drop-shadow(0 0 10px #fffdef);
+  z-index: 2;
+}
+
+.star-button:hover .star-6 {
+  position: absolute;
+  top: 5%;
+  left: 60%;
+  width: 5px;
+  height: auto;
+  filter: drop-shadow(0 0 10px #fffdef);
+  z-index: 2;
+}
+
+.fil0 { fill: #FFFDEF; }
+
+/* Responsive: reduce button size and hero gap on small screens */
+@media (max-width: 600px) {
+  .hero-content { gap: 22px; }
+  /* Mobile: keep the button compact while keeping text readable */
+  .star-button { padding: 12px 20px; font-size: 22px; }
 }
 
 /* Inputs and buttons */
@@ -124,8 +432,22 @@ button:hover {
   border-radius: 4px;
 }
 
+/* Hover scale + subtle lift for images and video thumbnails */
+.gallery-item img,
+.video-thumb img {
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease;
+  will-change: transform;
+}
+.gallery-item:hover img,
+.video-thumb:hover img {
+  transform: scale(1.04);
+}
+.gallery-item:hover {
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
 .gallery-item p {
-  margin-top: 10px;
+  margin-top: 6px;
   padding: 5px;
   font-size: 14px;
 }
@@ -141,4 +463,149 @@ button:hover {
 .placeholder-icon {
   font-size: 48px;
   margin-bottom: 20px;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none; /* shown by adding .show */
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.modal.show {
+  display: flex;
+}
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+.modal-panel {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  max-width: 900px;
+  width: 100%;
+  /* don't allow the panel itself to scroll; we'll size the image so text fits */
+  overflow: visible;
+  padding: 18px 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  z-index: 1001;
+}
+.modal-panel img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 12px;
+}
+.modal-panel iframe {
+  width: 100%;
+  height: 480px;
+  border-radius: 6px;
+  display: none; /* shown for video items */
+  margin-bottom: 12px;
+}
+
+.modal-panel video {
+  width: 100%;
+  height: auto;
+  max-height: 640px;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* focus styles for interactive gallery cards (keyboard accessible) */
+.gallery-item[role="button"]:focus {
+  outline: 3px solid rgba(77,144,254,0.25);
+  outline-offset: 4px;
+}
+
+/* External-open button shown when embedding isn't possible (e.g. restricted Vimeo videos) */
+.modal-external {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #1976d2;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.modal-external:hover { background: #145ea8; }
+
+/* Gallery video thumbnail with play overlay */
+.video-thumb {
+  position: relative;
+}
+.video-thumb img {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.video-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.6);
+  color: white;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  pointer-events: none;
+}
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f1f1f1;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 18px;
+}
+.modal-prev,
+.modal-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.9);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+}
+.modal-prev { left: 8px; }
+.modal-next { right: 8px; }
+
+.modal-prev:focus,
+.modal-next:focus,
+.modal-close:focus { outline: 2px solid #4d90fe; outline-offset: 2px; }
+.modal-date {
+  color: #666;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.modal-explanation {
+  margin-top: 12px;
+  color: #333;
+  line-height: 1.5;
+  font-size: 15px;
 }
