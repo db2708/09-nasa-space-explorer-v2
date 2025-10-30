@@ -4,6 +4,34 @@ const apodData = 'https://cdn.jsdelivr.net/gh/GCA-Classroom/apod/data.json';
 // Get references to DOM elements
 const gallery = document.getElementById('gallery');
 const getImageBtn = document.getElementById('getImageBtn');
+// Fact box (random "Did you know?") — populated on page load
+const factBoxEl = document.getElementById('fact-box');
+
+// Small collection of fun space facts shown randomly each load
+const spaceFacts = [
+	"Venus spins backward – Venus rotates clockwise, so the Sun rises in the west and sets in the east.",
+	"Neutron stars are insanely dense – A sugar-cube of neutron star material would weigh about a billion tons on Earth.",
+	"Saturn could float in water – Its average density is less than water, so it would float if you had a giant bathtub.",
+	"NASA made the coldest spot in the universe – Scientists cooled atoms to a billionth of a degree above absolute zero to study quantum effects.",
+	"Jupiter has diamond storms – Extreme pressure in Jupiter's atmosphere may compress carbon into solid diamond, raining down like hail.",
+	"Some planets are faster than their stars – WASP-19b orbits its star in under a day, making its 'year' shorter than its rotation.",
+	"A star can spin so fast it flattens – Altair spins so rapidly that it bulges at the equator, making it look more like a squashed sphere.",
+	"Some moons glow faintly – Jupiter's moon Io and Saturn's moon Enceladus emit faint visible light due to volcanic activity or geysers interacting with charged particles."
+];
+
+// Pick and show a random fact once DOM is ready
+function showRandomFact() {
+	if (!factBoxEl) return;
+	const idx = Math.floor(Math.random() * spaceFacts.length);
+		// Use a small bold label on the first line and the fact on the second line
+		factBoxEl.innerHTML = `<div class="fact-label">Fun Fact!</div><div class="fact-text">${spaceFacts[idx]}</div>`;
+}
+
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', showRandomFact);
+} else {
+	showRandomFact();
+}
 // Keep fetched items and current index for modal navigation
 let currentItems = [];
 let currentIndex = -1;
@@ -32,13 +60,59 @@ getImageBtn.addEventListener('click', async () => {
 	loadingDiv.innerHTML = `<div class="placeholder-icon">🔄</div><p>Fetching space images...</p>`;
 	gallery.appendChild(loadingDiv);
 
+	// Small UX delay so the loading message is visible even on fast networks
+	// (750ms = 0.75s)
+	await new Promise((res) => setTimeout(res, 750));
+
 	try {
 		const resp = await fetch(apodData);
 		if (!resp.ok) throw new Error(`Network response was not ok (${resp.status})`);
 		const data = await resp.json();
 
 		// store items for modal navigation
-		currentItems = Array.isArray(data) ? data : [];
+		let fetched = Array.isArray(data) ? data : [];
+
+		// Desired gallery ordering (user-specified). We'll try to match titles
+		// case-insensitively and by a normalized substring match. If an item
+		// isn't found we'll leave the remaining items in their original order.
+		const desiredOrder = [
+			"NGC 6960: The Witch's Broom Nebula",
+			"GW250114: Rotating Black Holes Collide",
+			"The NGC 6914 Complex",
+			"Comet Lemmon Brightens",
+			"Comet C/2025 R2 (SWAN)",
+			"A SWAN, an ATLAS, and Mars",
+			"saturn opposite the sun",
+			"Earthrise: A Video Reconstruction",
+			"a rocket in the sun"
+		];
+
+		function normalize(str) {
+			return (str || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+		}
+
+		function reorderItems(items, orderList) {
+			const remaining = items.slice();
+			const ordered = [];
+			for (const want of orderList) {
+				const wantNorm = normalize(want);
+				let foundIdx = -1;
+				for (let i = 0; i < remaining.length; i++) {
+					const t = remaining[i].title || '';
+					if (normalize(t).includes(wantNorm) || normalize(want).includes(normalize(t))) {
+						foundIdx = i;
+						break;
+					}
+				}
+				if (foundIdx !== -1) {
+					ordered.push(remaining.splice(foundIdx, 1)[0]);
+				}
+			}
+			// append any items we didn't explicitly order
+			return ordered.concat(remaining);
+		}
+
+		currentItems = reorderItems(fetched, desiredOrder);
 		renderGallery(currentItems);
 	} catch (err) {
 		// Show a simple error state inside the gallery
@@ -297,34 +371,39 @@ function renderGallery(items) {
 		});
 	}
 
-	// Helper: transform a video URL into an embeddable URL where possible
+	// Helper: transform a video URL into an embeddable URL where possible.
+	// Only allow explicit YouTube embeds here. Returning the original URL
+	// for other hosts often results in a broken iframe due to X-Frame-Options
+	// or provider restrictions (Vimeo is commonly restricted). Returning
+	// null forces the modal fallback (thumbnail + external link), which is
+	// safer UX than showing a broken player.
 	function makeEmbedUrl(url) {
 		if (!url) return null;
 		try {
 			const u = new URL(url);
 			const host = u.hostname.toLowerCase();
-					// YouTube watch links -> embed
-					if (host.includes('youtube.com')) {
-						const v = u.searchParams.get('v');
-						if (v) return `https://www.youtube.com/embed/${v}?rel=0&modestbranding=1`;
-						// if already /embed/ path, use as-is
-						if (u.pathname.startsWith('/embed/')) return url;
-					}
-					// youtu.be short links
-					if (host === 'youtu.be') {
-						const id = u.pathname.slice(1);
-						if (id) return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
-					}
 
-					// NOTE: Many Vimeo videos on APOD are restricted from being embedded on arbitrary domains
-					// which leads to player errors (e.g. Vimeo "153: Player configuration error").
-					// To avoid showing a broken player we do NOT attempt to embed Vimeo here and
-					// instead return null so the caller can fallback to showing a thumbnail + external link.
-					if (host.includes('vimeo.com')) {
-						return null;
-					}
-					// Otherwise return the original URL — may or may not be embeddable
-					return url;
+			// YouTube watch links -> embed
+			if (host.includes('youtube.com')) {
+				const v = u.searchParams.get('v');
+				if (v) return `https://www.youtube.com/embed/${v}?rel=0&modestbranding=1`;
+				// if already /embed/ path, normalize and use a safe embed URL
+				if (u.pathname.startsWith('/embed/')) {
+					const parts = u.pathname.split('/');
+					const id = parts[parts.length - 1];
+					if (id) return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+				}
+			}
+
+			// youtu.be short links
+			if (host === 'youtu.be') {
+				const id = u.pathname.slice(1);
+				if (id) return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+			}
+
+			// Explicitly refuse to embed Vimeo and other providers to avoid
+			// showing a broken player due to provider restrictions.
+			return null;
 		} catch (e) {
 			return null;
 		}

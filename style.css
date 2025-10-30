@@ -28,6 +28,44 @@ body {
   z-index: 5;
 }
 
+/* Random "Did you know?" fact box shown above the gallery */
+.fact-box {
+  background: rgba(220,228,239,0.65); /* match gallery card background */
+  color: #212121; /* same text color as gallery */
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 0 auto 18px; /* center and add spacing below */
+  max-width: 700px; /* a little shorter than the combined logo + title width */
+  display: flex;
+  flex-direction: column; /* stack label and fact vertically */
+  align-items: left;
+  justify-content: left;
+  text-align: left;
+  line-height: 1.35;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  z-index: 6;
+}
+
+/* Slightly reduce size on very small screens so it doesn't crowd the hero */
+@media (max-width: 420px) {
+  .fact-box { max-width: 92%; padding: 10px; }
+  .fact-box .fact-label { font-size: 2px; }
+  .fact-box .fact-text { font-size: 2px; }
+}
+
+/* Fact label and text sizes */
+.fact-box .fact-label {
+  font-weight: 700;
+  font-size: 18px; /* slightly smaller label */
+  margin-bottom: 8px;
+  font-family: 'Ubuntu', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+.fact-box .fact-text {
+  font-size: 18px; /* larger fact text */
+  line-height: 1.4;
+  font-family: 'Ubuntu', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
 /* Header */
 .site-header {
   display: flex;
@@ -85,7 +123,8 @@ h1 {
 */
 body.compact .hero {
   min-height: 64px; /* slim nav height */
-  padding: 8px 12px;
+  /* add extra room above the header content so logo/title sit lower from the top */
+  padding: 28px 12px 6px; /* top right/left bottom */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,10 +133,11 @@ body.compact .hero {
 /* Transform hero content into a top-nav bar */
 body.compact .hero .hero-content {
   flex-direction: row;
-  justify-content: space-between;
+  /* center header content in the compact/top-nav state since the action button is hidden */
+  justify-content: center;
   align-items: center;
   width: 100%;
-  gap: 8px;
+  gap: 12px;
   padding: 0 8px;
 }
 
@@ -114,8 +154,14 @@ body.compact .hero .site-header {
 
 /* add spacing between the left edge of the viewport and the logo when compact */
 body.compact .site-header {
-  padding-left: 16px;
-  padding-top: 10px;
+  /* center the logo/title horizontally in the compact nav */
+  padding-left: 0;
+  /* increase top breathing room so the header is positioned lower */
+  padding-top: 14px;
+  /* tighten the space below the header so the nav feels compact */
+  padding-bottom: 4px;
+  margin-bottom: 0;
+  justify-content: center;
 }
 
 /* Align filters (the button) to the right in the nav */
@@ -125,10 +171,10 @@ body.compact .hero .filters {
 }
 
 /* Slightly reduce logo and title size in compact/nav state */
-body.compact .hero .logo { width: 90px; margin-right: 8px; }
-/* Make the logo/title larger in the compact nav so they stand out */
-body.compact .hero .logo { width: 130px; margin-right: 2px; }
-body.compact .hero h1 { font-size: 38px; }
+/* Make the logo/title larger in the compact nav so they stand out and are centered */
+body.compact .hero .logo { width: 160px; margin-right: 12px; }
+body.compact .logo { width: 160px; margin-right: 12px; }
+body.compact .hero h1 { font-size: 48px; }
 
 /* Hide the fetch button visually when compact (the JS will also hide it once clicked) */
 body.compact .filters button { display: none; }
@@ -172,7 +218,7 @@ body.compact .container {
 
 .hero .filters button {
   padding: 14px 22px;
-  /* font-size removed to allow .star-button to control sizing */
+  font-size: 18px;
 }
 
 /* Logo */
@@ -197,21 +243,27 @@ body.compact .container {
 /* Star-decorated primary button (scoped so other buttons aren't affected) */
 .star-button{
   position: relative;
-  /* restore original (smaller) button sizing while keeping text slightly larger */
-  padding: 14px 22px;
-  background: #dce4ef; /* default background when not hovered */
-  font-size: 26px; /* modestly larger text, button overall size kept small */
+  /* larger button on desktop */
+  padding: 22px 64px;
+  background: rgba(220,228,239,0.95); /* semi-transparent default background when not hovered */
+  font-size: 36px; /* slightly reduced for better balance */
   font-weight: 700;
-  color: #000000;
+  color: #212121; /* darker page background color for idle text */
   border: 3px solid #dce4ef; /* border matches background */
   border-radius: 12px;
   box-shadow: 0 0 0 #fec1958c;
   transition: all .22s ease-in-out;
 }
 
-/* Ensure the hero filters area doesn't override the star-button size */
-.hero .filters .star-button {
-  font-size: 30px;
+/* Scale the label inside the button so the text looks larger without changing the
+   button's physical box size (transform doesn't affect layout). This preserves the
+   button padding/box while making the type more prominent. */
+.star-button .star-label {
+  display: inline-block;
+  transform-origin: center center;
+  transform: scale(1.08);
+  line-height: 1;
+  white-space: nowrap; /* avoid wrapping when scaled */
 }
 
 .star-button .star-1 {
@@ -354,8 +406,9 @@ body.compact .container {
 /* Responsive: reduce button size and hero gap on small screens */
 @media (max-width: 600px) {
   .hero-content { gap: 22px; }
-  /* Mobile: keep the button compact while keeping text readable */
-  .star-button { padding: 12px 20px; font-size: 22px; }
+  /* Mobile: slightly larger so the CTA remains prominent but fits narrow widths */
+  .star-button { padding: 16px 36px; font-size: 32px; }
+  .star-button .star-label { transform: scale(1.03); }
 }
 
 /* Inputs and buttons */
@@ -408,8 +461,13 @@ button:hover {
 .gallery-item {
   flex: 1 1 100%;  /* full width by default */
   min-width: 280px;
-  max-width: 500px;
-  background: white;
+  max-width: 550px;
+    /* Slightly translucent neutral background so the canvas/hero can subtly show through */
+    background: rgba(220, 228, 239, .65); /* neutral card background */
+  /* enable smooth card-scale animation for the whole item */
+  position: relative;
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease;
+  will-change: transform;
   padding: 10px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -438,18 +496,56 @@ button:hover {
   transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease;
   will-change: transform;
 }
-.gallery-item:hover img,
+/* only scale the thumbnail image when its immediate video thumbnail wrapper is hovered
+   (keeps the image effect for video thumbs while the whole card scales) */
 .video-thumb:hover img {
   transform: scale(1.04);
 }
+
+/* scale the entire card on hover (affects image, title, date, etc.) */
 .gallery-item:hover {
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  /* slightly larger scale for a more noticeable hover 'lift' */
+  transform: scale(1.04);
+  transform-origin: center center;
+  z-index: 3; /* lift above neighbors while scaled */
+  /* stronger, softer shadow while hovered */
+  box-shadow: 0 18px 42px rgba(0,0,0,0.18);
 }
 
 .gallery-item p {
   margin-top: 6px;
   padding: 5px;
-  font-size: 14px;
+  /* Use Share Tech Mono for dates and make them a bit larger. Use !important to
+     override any inline sizing set by JavaScript so visual size is consistent. */
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px !important;
+  /* Make the date bold for better emphasis */
+  font-weight: 700 !important;
+}
+
+/* Apply requested font stack to the object names (titles) in the first gallery row.
+   The selector targets the first three items (works well for the intended three-column
+   layout on wide screens). Fallbacks preserve a readable sans-serif if fonts fail to load. */
+/* Make all gallery object names use the same display font (the first-listed font)
+   and remove secondary font fallbacks to avoid pulling extra families. */
+.gallery-item h3 {
+  font-family: 'Audiowide', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+}
+
+/* Ensure gallery card text uses the requested color. Target common text elements
+   (titles, dates, links) so we don't inadvertently change icon colors (e.g. play button). */
+.gallery-item h3,
+.gallery-item p,
+.gallery-item a {
+  color: #212121 !important;
+}
+
+/* Keep the card background consistent when focused or active (keyboard/touch)
+   so the visual doesn't shift when interacting. */
+.gallery-item:active,
+.gallery-item:focus {
+  background: rgba(220, 228, 239, .95);
 }
 
 /* Placeholder content */
@@ -485,7 +581,10 @@ button:hover {
 }
 .modal-panel {
   position: relative;
-  background: #fff;
+  /* Match the gallery card background color/transparency for visual consistency */
+  /* Increased opacity per user request */
+  background: rgba(220, 228, 239, .85);
+  color: #212121; /* ensure text in the modal matches the card text color */
   border-radius: 8px;
   max-width: 900px;
   width: 100%;
@@ -578,34 +677,54 @@ button:hover {
 }
 .modal-prev,
 .modal-next {
+  /* Visible navigation controls positioned outside the modal-panel so
+     they don't overlap the displayed image. Keep them visually subtle. */
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,255,255,0.9);
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  width: 38px;
-  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 42px;
+  height: 42px;
   font-size: 22px;
+  background: rgba(241, 241, 241, 0.85);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   cursor: pointer;
+  z-index: 1002; /* above the modal-panel so the controls are always clickable */
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
-.modal-prev { left: 8px; }
-.modal-next { right: 8px; }
+
+/* Move the controls slightly outside the modal panel so they don't sit on top of the image.
+   These negative offsets are safe because the modal-panel has overflow: visible. */
+.modal-prev { left: -56px; }
+.modal-next { right: -56px; }
+
+.modal-prev:hover,
+.modal-next:hover {
+  transform: translateY(-50%) scale(1.03);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+}
 
 .modal-prev:focus,
 .modal-next:focus,
 .modal-close:focus { outline: 2px solid #4d90fe; outline-offset: 2px; }
 .modal-date {
-  color: #666;
-  font-size: 14px;
+  color: #212121;
+  /* Keep modal date visually consistent with card dates */
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
   margin-top: 6px;
 }
 .modal-explanation {
   margin-top: 12px;
   color: #333;
   line-height: 1.5;
-  font-size: 15px;
+  font-size: 18px;
+  /* Use Ubuntu font for the object description/explanation to improve readability */
+  font-family: 'Ubuntu', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
+
